@@ -81,6 +81,15 @@ services:
     ports:
       - "6379:6379"
 
+  user-service-redis:
+    image: redis
+    container_name: user-service-redis
+    networks:
+      - ticketing-network
+    ports:
+      - "6380:6379"
+
+
   # 2. 애플리케이션 서비스 (Application Services)
   user-service:
     image: ticketing/user-service:1.0 # 우리가 빌드한 이미지 사용
@@ -91,10 +100,13 @@ services:
       - "8081:8081"
     depends_on: # user-service-postgres가 실행된 후에 시작
       - user-service-postgres
+      - user-service-redis
     environment: # 환경변수를 통해 DB 접속 정보 주입
       - SPRING_DATASOURCE_URL=jdbc:postgresql://user-service-postgres:5432/user-service-db
       - SPRING_DATASOURCE_USERNAME=sanghyeop
       - SPRING_DATASOURCE_PASSWORD=star15321!
+      - SPRING_DATA_REDIS_HOST=user-service-redis
+      - SPRING_DATA_REDIS_PORT=6379
 
   product-service:
     image: ticketing/product-service:1.0
@@ -119,9 +131,11 @@ services:
       - "8083:8083"
     depends_on:
       - seat-management-redis
+      - kafka
     environment:
       - SPRING_DATA_REDIS_HOST=seat-management-redis
       - SPRING_DATA_REDIS_PORT=6379
+      - SPRING_KAFKA_BOOTSTRAP-SERVERS=kafka:9092
 
   order-service: # ticketing-poc 프로젝트
     image: ticketing/order-service:1.0
