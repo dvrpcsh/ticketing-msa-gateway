@@ -24,6 +24,17 @@ class JwtTokenProvider (
     }
 
     /**
+     * 토큰에서 userId를 직접 추출합니다.
+     * Integer로 저장된 경우에도 Long으로 안전하게 변환합니다.
+     */
+    fun getUserId(token: String): Long {
+        val claims = parseClaims(token)
+
+        //claims에서 값을 Number 타입으로 먼저 받은 후, toLong()으로 변환하여 타입 불일치 문제를 해결합니다.
+        return (claims["userId"] as? Number)?.toLong() ?: throw RuntimeException("토큰에 userId 정보가 없습니다")
+    }
+
+    /**
      * 주어진 JWT 토큰에서 인증(Authentication) 정보를 추출합니다.
      *
      */
